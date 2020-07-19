@@ -872,6 +872,83 @@ Zwischen Rahmenbegrenzungsfeldern werden beliebige Bits übertragen. Problem, we
     \end{description}
 \end{minipage}
 
+\subsubsection{NDP / SLAAC (IPv6)}
+\begin{description}
+	\item[NDP (\textit{Neighbor Discovery Protocol})] Ermittlung von Routern, Bestimmung der Link-Layer Adresse eines Knotens, Verwaltung von Erreichbarkeitsinformationen eines Knotens und SLAAC.\\[5mm]
+		\begin{minipage}{0.45\textwidth}
+		    \begin{description}
+			\item[NS:] Neighbor Solicitation
+			\item[NA:] Neighbor Advertisement
+		    \end{description}
+		\end{minipage}
+		\begin{minipage}{0.1\textwidth}
+		    \hfill
+		\end{minipage}
+		\begin{minipage}{0.45\textwidth}
+		    \begin{description}
+			\item[RS:] Router Solicitation
+			\item[RA:] Router Advertisement
+		    \end{description}
+		\end{minipage}
+		\vspace{5mm}
+\item[SLAAC (\textit{Stateless Address Autoconfiguration})] Selbständige Zuweisung einer globalen IPv6 Unicast-Adresse und Prüfung auf Eindeutigkeit dieser Adresse.
+
+\begin{enumerate}
+	\item link-local IPv6 Adresse erzeugen\\
+		\begin{tikzpicture}[
+		    block/.style={rectangle, minimum height=0.5cm, outer sep=0, draw=blue!20, fill=blue!20, align=center, font=\small},
+		    node distance=0cm
+		]
+		    \node[block] (blk1) {24};
+		    \node[right=of blk1, block] (blk2) {77};
+		    \node[right=of blk2, block] (blk3) {03};
+		    \node[right=of blk3, block] (blk4) {22};
+		    \node[right=of blk4, block] (blk5) {E8};
+		    \node[right=of blk5, block] (blk6) {2D};
+		    %
+		    \node[block, fill=white] (llblk1) at ($(blk1.south) - (0.5,0.5)$) {26};
+		    \node[right=of llblk1, block] (llblk2) {77};
+		    \node[right=of llblk2, block] (llblk3) {03};
+		    \node[right=of llblk3, block, draw=white, fill=white] (llblk4) {FF};
+		    \node[right=of llblk4, block, draw=white, fill=white] (llblk5) {FE};
+		    \node[right=of llblk5, block] (llblk6) {22};
+		    \node[right=of llblk6, block] (llblk7) {E8};
+		    \node[right=of llblk7, block] (llblk8) {2D};
+		    %
+		    \draw (blk1.south west) -- (llblk1.north west);
+		    \draw (blk1.south east) -- (llblk1.north east);
+		    \draw (blk2.south west) -- (llblk2.north west);
+		    \draw (blk3.south east) -- (llblk3.north east);
+		    \draw (blk4.south west) -- (llblk6.north west);
+		    \draw (blk6.south east) -- (llblk8.north east);
+
+		    \node[block, draw=lime!50, fill=lime!50] (intID) at ($(llblk4.south east) - (0,1)$)  {2677:03ff:fe:22:e8:2d};
+		    \node[block, draw=white, fill=white, left=of intID, inner sep=0] (sep) {:}; 
+		    \node[block, left=of sep, draw=orange!50, fill=orange!50] (prefix) {fe80:0000:0000:0000};
+		    \node[below=of prefix, font=\small] {Prefix};
+		    \node[below=of intID, font=\small] {Interface Identifier};
+
+		    \draw (llblk1.south west) -- (intID.north west);
+		    \draw (llblk8.south east) -- (intID.north east);
+
+		    \node[font=\tiny, align=left] (ul) at ($(llblk1) - (2,0.3)$) {Invertieren von Bit 7\\(universal/local Bit)};
+		    \node[left=of blk1, font=\small] {MAC-Adresse:};
+		    \draw[->] (ul) -- (llblk1.west);
+		    \node[left=of prefix, font=\small] {link-local Adresse:};
+
+		\end{tikzpicture}
+
+	\item Host sendet \textbf{NS} an link-local Unicast-Adresse\\
+	      ausbleibendes \textbf{NA} bestätigt Eindeutigkeit der link-local Adresse
+	\item Host sendet \textbf{RS} an alle Router (Multicastgruppe ff02::2)
+	\item Router senden \textbf{RA} mit globalen Präfix und weiteren Konfigurationsparametern des Netzes
+	\item Globale IPv6 Adresse wird aus Präfix und interface identifier der link-local Adresse gebildet
+	\item Host sendet \textbf{NS} an globale Unicast-Adresse\\
+	      ausbleibendes \textbf{NA} bestätigt Eindeutigkeite der globalen Adresse
+	\item Adresszuweisung und Bekanntmachung mit \textbf{NA}
+\end{enumerate}
+\end{description}
+
 \subsection{Routing}
 \begin{description}
     \item[Longest Prefix Match] Wenn die Ziel-IP mit mehreren Routing-Einträgen übereinstimmt, so wird der Eintrag mit dem längsten übereinstimmenden Präfix ausgewählt. Das kann erreicht werden, indem man den Eintrag mit der größten Netzmaske wählt.
